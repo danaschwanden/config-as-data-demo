@@ -325,9 +325,3 @@ kubectl get pods
 # my-nginx-584b4f6d78-mzgcc   1/1     Running   0          13s
 # my-nginx-584b4f6d78-xchgh   1/1     Running   0          13s
 ```
-
-```
-# Copyright 2023 Google LLC.
-# This software is provided as-is, without warranty or representation for any use or purpose.
-# Your use of it is subject to your agreement with Google.
-```

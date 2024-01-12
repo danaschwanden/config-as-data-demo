@@ -376,9 +376,4 @@ kubectl port-forward --address 0.0.0.0 -n backstage-ui-plugin svc/backstage 7007
 #### 21. Connect to the porch backstage UI 
 Connect to the porch backstage UI by pointing your browser to [http://localhost:7007](http://localhost:7007).
 You can now explore the porch resources through the backstage UI.
-
-```
-# Copyright 2023 Google LLC.
-# This software is provided as-is, without warranty or representation for any use or purpose.
-# Your use of it is subject to your agreement with Google.
 ```
