@@ -1,0 +1,295 @@
+docker build -t workstation:day3 .
+
+docker run --rm -d --env='DOCKER_OPTS=' --volume=/var/lib/docker --privileged --name demo -p 8080:80 -p 3000:3000 -p 7007:7007 workstation:day3
+
+Connect to the Workstation http:localhost:8080 and open a Terminal
+
+docker ps
+d69487aeb0fc  kindest/node:v1.25.3         2 minutes ago  127.0.0.1:34593->6443/tcp                       demo-control-plane
+7f9086f6184f  gitea/gitea:1.17.3-rootless  3 minutes ago  0.0.0.0:2222->2222/tcp, 0.0.0.0:3000->3000/tcp  gitea
+
+kubectl get nodes
+NAME                 STATUS   ROLES           AGE   VERSION
+demo-control-plane   Ready    control-plane   26s   v1.25.3
+
+kubectl get pods --all-namespaces
+NAMESPACE            NAME                                         READY   STATUS    RESTARTS   AGE
+kube-system          coredns-565d847f94-75jlx                     1/1     Running   0          18s
+kube-system          coredns-565d847f94-97ffj                     1/1     Running   0          18s
+kube-system          etcd-demo-control-plane                      1/1     Running   0          33s
+kube-system          kindnet-5zmdd                                1/1     Running   0          18s
+kube-system          kube-apiserver-demo-control-plane            1/1     Running   0          33s
+kube-system          kube-controller-manager-demo-control-plane   1/1     Running   0          32s
+kube-system          kube-proxy-pgvtl                             1/1     Running   0          18s
+kube-system          kube-scheduler-demo-control-plane            1/1     Running   0          32s
+local-path-storage   local-path-provisioner-684f458cdd-wzk6v      1/1     Running   0          18s
+
+git config --global user.email "demo@d.com"
+git config --global user.name "demo"
+
+wget https://github.com/GoogleContainerTools/kpt/releases/download/porch%2Fv0.0.18/deployment-blueprint.tar.gz
+mkdir porch-install
+tar xzf deployment-blueprint.tar.gz -C porch-install
+kubectl apply -f porch-install
+customresourcedefinition.apiextensions.k8s.io/functions.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/packagerevs.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/packagevariants.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/packagevariantsets.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/remoterootsyncsets.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/repositories.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/rootsyncsets.config.porch.kpt.dev created
+customresourcedefinition.apiextensions.k8s.io/workloadidentitybindings.config.porch.kpt.dev created
+namespace/porch-system created
+namespace/porch-fn-system created
+serviceaccount/porch-fn-runner created
+deployment.apps/function-runner created
+service/function-runner created
+configmap/pod-cache-config created
+serviceaccount/porch-server created
+deployment.apps/porch-server created
+service/api created
+apiservice.apiregistration.k8s.io/v1alpha1.porch.kpt.dev created
+clusterrole.rbac.authorization.k8s.io/aggregated-apiserver-clusterrole created
+role.rbac.authorization.k8s.io/aggregated-apiserver-role created
+role.rbac.authorization.k8s.io/porch-function-executor created
+clusterrolebinding.rbac.authorization.k8s.io/sample-apiserver-clusterrolebinding created
+rolebinding.rbac.authorization.k8s.io/sample-apiserver-rolebinding created
+rolebinding.rbac.authorization.k8s.io/porch-function-executor created
+rolebinding.rbac.authorization.k8s.io/porch-auth-reader created
+clusterrolebinding.rbac.authorization.k8s.io/porch:system:auth-delegator created
+serviceaccount/porch-controllers created
+deployment.apps/porch-controllers created
+clusterrole.rbac.authorization.k8s.io/porch-controllers created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-functiondiscovery created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-functiondiscovery created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-packagevariants created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-packagevariants created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-packagevariantsets created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-packagevariantsets created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-remoterootsyncsets created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-remoterootsyncsets created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-rootsyncsets created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-rootsyncsets created
+clusterrole.rbac.authorization.k8s.io/porch-controllers-workloadidentitybinding created
+clusterrolebinding.rbac.authorization.k8s.io/porch-system:porch-controllers-workloadidentitybinding created
+customresourcedefinition.apiextensions.k8s.io/configmanagements.configmanagement.gke.io created
+namespace/config-management-system created
+namespace/config-management-monitoring created
+clusterrole.rbac.authorization.k8s.io/config-management-operator created
+clusterrolebinding.rbac.authorization.k8s.io/config-management-operator created
+serviceaccount/config-management-operator created
+deployment.apps/config-management-operator created
+
+kubectl wait deployment --for=condition=Available porch-server -n porch-system
+deployment.apps/porch-server condition met
+
+kubectl api-resources | grep porch
+functions                                      config.porch.kpt.dev/v1alpha1          true         Function
+packagerevs                                    config.porch.kpt.dev/v1alpha1          true         PackageRev
+packagevariants                                config.porch.kpt.dev/v1alpha1          true         PackageVariant
+packagevariantsets                             config.porch.kpt.dev/v1alpha2          true         PackageVariantSet
+remoterootsyncsets                             config.porch.kpt.dev/v1alpha1          true         RemoteRootSyncSet
+repositories                                   config.porch.kpt.dev/v1alpha1          true         Repository
+rootsyncsets                                   config.porch.kpt.dev/v1alpha1          true         RootSyncSet
+workloadidentitybindings                       config.porch.kpt.dev/v1alpha1          true         WorkloadIdentityBinding
+functions                                      porch.kpt.dev/v1alpha1                 true         Function
+packagerevisionresources                       porch.kpt.dev/v1alpha1                 true         PackageRevisionResources
+packagerevisions                               porch.kpt.dev/v1alpha1                 true         PackageRevision
+packages                                       porch.kpt.dev/v1alpha1                 true         Package
+
+kubectl get pods --all-namespaces
+NAMESPACE                  NAME                                          READY   STATUS    RESTARTS   AGE
+config-management-system   config-management-operator-58ff7dbd66-mntjn   1/1     Running   0          2m13s
+kube-system                coredns-565d847f94-75jlx                      1/1     Running   0          5m34s
+kube-system                coredns-565d847f94-97ffj                      1/1     Running   0          5m34s
+kube-system                etcd-demo-control-plane                       1/1     Running   0          5m49s
+kube-system                kindnet-5zmdd                                 1/1     Running   0          5m34s
+kube-system                kube-apiserver-demo-control-plane             1/1     Running   0          5m49s
+kube-system                kube-controller-manager-demo-control-plane    1/1     Running   0          5m48s
+kube-system                kube-proxy-pgvtl                              1/1     Running   0          5m34s
+kube-system                kube-scheduler-demo-control-plane             1/1     Running   0          5m48s
+local-path-storage         local-path-provisioner-684f458cdd-wzk6v       1/1     Running   0          5m34s
+porch-fn-system            apply-replacements-85913d4e                   1/1     Running   0          2m1s
+porch-fn-system            apply-setters-4d429572                        1/1     Running   0          2m1s
+porch-fn-system            create-setters-0220cc87                       1/1     Running   0          2m1s
+porch-fn-system            enable-gcp-services-a56558d5                  1/1     Running   0          2m1s
+porch-fn-system            ensure-name-substring-33ff7d9a                1/1     Running   0          2m1s
+porch-fn-system            export-terraform-571fedd3                     1/1     Running   0          2m1s
+porch-fn-system            gatekeeper-a1c19318                           1/1     Running   0          2m1s
+porch-fn-system            generate-folders-4511c517                     1/1     Running   0          2m1s
+porch-fn-system            kubeval-bb88cbcc                              1/1     Running   0          2m1s
+porch-fn-system            remove-local-config-resources-2825914e        1/1     Running   0          2m1s
+porch-fn-system            search-replace-6864b06b                       1/1     Running   0          2m1s
+porch-fn-system            set-annotations-76d65ebd                      1/1     Running   0          2m1s
+porch-fn-system            set-enforcement-action-aea09be3               1/1     Running   0          2m1s
+porch-fn-system            set-image-49c7a466                            1/1     Running   0          2m1s
+porch-fn-system            set-labels-0dfc3c8a                           1/1     Running   0          2m1s
+porch-fn-system            set-namespace-f930d924                        1/1     Running   0          2m1s
+porch-fn-system            set-project-id-966c9e51                       1/1     Running   0          2m1s
+porch-fn-system            starlark-6ba3971c                             1/1     Running   0          2m1s
+porch-fn-system            upsert-resource-77196bdb                      1/1     Running   0          2m1s
+porch-system               function-runner-6ff7ff6744-gn27b              1/1     Running   0          2m16s
+porch-system               function-runner-6ff7ff6744-zn69q              1/1     Running   0          2m16s
+porch-system               porch-controllers-5467dfd9c7-jczhx            1/1     Running   0          2m15s
+porch-system               porch-server-656c6fb555-bpg8m                 1/1     Running   0          2m16s
+
+echo "
+apiVersion: configmanagement.gke.io/v1
+kind: ConfigManagement
+metadata:
+  name: config-management
+spec:
+  enableMultiRepo: true
+" | kubectl apply -f -
+
+configmanagement.configmanagement.gke.io/config-management created
+
+kubectl get pods --all-namespaces
+NAMESPACE                      NAME                                                READY   STATUS    RESTARTS   AGE
+config-management-monitoring   otel-collector-659876667-kd7vc                      1/1     Running   0          22s
+config-management-system       config-management-operator-58ff7dbd66-mntjn         1/1     Running   0          6m45s
+config-management-system       reconciler-manager-679c4ccc96-j8xhf                 2/2     Running   0          22s
+kube-system                    coredns-565d847f94-75jlx                            1/1     Running   0          10m
+kube-system                    coredns-565d847f94-97ffj                            1/1     Running   0          10m
+kube-system                    etcd-demo-control-plane                             1/1     Running   0          10m
+kube-system                    kindnet-5zmdd                                       1/1     Running   0          10m
+kube-system                    kube-apiserver-demo-control-plane                   1/1     Running   0          10m
+kube-system                    kube-controller-manager-demo-control-plane          1/1     Running   0          10m
+kube-system                    kube-proxy-pgvtl                                    1/1     Running   0          10m
+kube-system                    kube-scheduler-demo-control-plane                   1/1     Running   0          10m
+local-path-storage             local-path-provisioner-684f458cdd-wzk6v             1/1     Running   0          10m
+porch-fn-system                apply-replacements-85913d4e                         1/1     Running   0          6m33s
+porch-fn-system                apply-setters-4d429572                              1/1     Running   0          6m33s
+porch-fn-system                create-setters-0220cc87                             1/1     Running   0          6m33s
+porch-fn-system                enable-gcp-services-a56558d5                        1/1     Running   0          6m33s
+porch-fn-system                ensure-name-substring-33ff7d9a                      1/1     Running   0          6m33s
+porch-fn-system                export-terraform-571fedd3                           1/1     Running   0          6m33s
+porch-fn-system                gatekeeper-a1c19318                                 1/1     Running   0          6m33s
+porch-fn-system                generate-folders-4511c517                           1/1     Running   0          6m33s
+porch-fn-system                kubeval-bb88cbcc                                    1/1     Running   0          6m33s
+porch-fn-system                remove-local-config-resources-2825914e              1/1     Running   0          6m33s
+porch-fn-system                search-replace-6864b06b                             1/1     Running   0          6m33s
+porch-fn-system                set-annotations-76d65ebd                            1/1     Running   0          6m33s
+porch-fn-system                set-enforcement-action-aea09be3                     1/1     Running   0          6m33s
+porch-fn-system                set-image-49c7a466                                  1/1     Running   0          6m33s
+porch-fn-system                set-labels-0dfc3c8a                                 1/1     Running   0          6m33s
+porch-fn-system                set-namespace-f930d924                              1/1     Running   0          6m33s
+porch-fn-system                set-project-id-966c9e51                             1/1     Running   0          6m33s
+porch-fn-system                starlark-6ba3971c                                   1/1     Running   0          6m33s
+porch-fn-system                upsert-resource-77196bdb                            1/1     Running   0          6m33s
+porch-system                   function-runner-6ff7ff6744-gn27b                    1/1     Running   0          6m48s
+porch-system                   function-runner-6ff7ff6744-zn69q                    1/1     Running   0          6m48s
+porch-system                   porch-controllers-5467dfd9c7-jczhx                  1/1     Running   0          6m47s
+porch-system                   porch-server-656c6fb555-bpg8m                       1/1     Running   0          6m48s
+resource-group-system          resource-group-controller-manager-795b9cb9c-m25ld   2/2     Running   0          22s
+
+kubectl create secret generic giteatoken --from-literal=username=demo --from-literal=token=$(cat /demo/giteatoken) -n config-management-system
+kubectl apply -f /demo/demo-root-sync.yaml -n config-management-system
+
+kpt alpha repo register --namespace default --repo-basic-username=demo --repo-basic-password=$(cat /demo/giteatoken) http://gitea:3000/demo/blueprints.git
+kpt alpha repo register --namespace default --repo-basic-username=demo --repo-basic-password=$(cat /demo/giteatoken) --deployment=true http://gitea:3000/demo/day3.git
+kpt alpha repo register --namespace default --directory=package-examples --name=package-examples https://github.com/GoogleContainerTools/kpt.git
+
+kpt alpha repo get
+blueprints         git    Package                True    http://gitea:3000/demo/blueprints.git
+day3               git    Package   true         True    http://gitea:3000/demo/day3.git
+package-examples   git    Package                True    https://github.com/GoogleContainerTools/kpt.git
+
+kpt alpha rpkg clone package-examples-5737e41965b59834fa34cbd1d49cac9afd3a0dad nginx --repository=day3 -ndefault
+
+kpt alpha rpkg get --name=nginx
+NAME                                                        PACKAGE   WORKSPACENAME   REVISION   LATEST   LIFECYCLE   REPOSITORY
+day3-c2aa595fab03646be3e8abf66b75a79fd45080d9               nginx     v1                         false    Draft       day3
+package-examples-0611e7cc531b88067fcdafb775dd2c2c446cafae   nginx     main            main       false    Published   package-examples
+...
+
+# Propose package to be published
+kpt alpha rpkg propose day3-c2aa595fab03646be3e8abf66b75a79fd45080d9 -ndefault
+
+kpt alpha rpkg get --name=nginx
+NAME                                                        PACKAGE   WORKSPACENAME   REVISION   LATEST   LIFECYCLE   REPOSITORY
+day3-c2aa595fab03646be3e8abf66b75a79fd45080d9               nginx     v1                         false    Proposed    day3
+package-examples-0611e7cc531b88067fcdafb775dd2c2c446cafae   nginx     main            main       false    Published   package-examples
+...
+
+# Approve a proposal to publish
+kpt alpha rpkg approve day3-c2aa595fab03646be3e8abf66b75a79fd45080d9 -ndefault
+
+kubectl get pods                 
+NAME                        READY   STATUS    RESTARTS   AGE
+my-nginx-578b7694b4-bjtsm   1/1     Running   0          47s
+my-nginx-578b7694b4-jjrcg   1/1     Running   0          47s
+my-nginx-578b7694b4-nnqnc   1/1     Running   0          47s
+my-nginx-578b7694b4-pfvt7   1/1     Running   0          47s
+
+kpt alpha repo register --namespace=default https://github.com/GoogleContainerTools/kpt-samples.git
+
+kpt alpha repo get
+blueprints         git    Package                True    http://gitea:3000/demo/blueprints.git
+day3               git    Package   true         True    http://gitea:3000/demo/day3.git
+kpt-samples        git    Package                True    https://github.com/GoogleContainerTools/kpt-samples.git
+package-examples   git    Package                True    https://github.com/GoogleContainerTools/kpt.git
+
+kpt alpha rpkg clone kpt-samples-4eec8cab06d8695eb329c3e068705c2525a55c7c backstage-ui-plugin --repository=blueprints -ndefault
+
+kpt alpha rpkg pull blueprints-e057fa5d111e5249f93f350424d7e8c0159bbc3c backstage-ui-plugin -ndefault
+
+rm backstage-ui-plugin/externalsecret-openid.yaml
+# set backstage image to most recent version
+kpt fn eval backstage-ui-plugin --image gcr.io/kpt-fn/set-image:v0.1.1 -- name=gcr.io/kpt-dev/kpt-backstage-plugins/backstage-plugin-cad newTag=v0.1.3
+
+# update deployment.yaml with
+#      serviceAccountName: backstage-webui-sa
+#      containers:
+#      - name: backstage
+#        image: gcr.io/kpt-dev/kpt-backstage-plugins/backstage-plugin-cad:v0.1.3
+#        ports:
+#        - name: http
+#          containerPort: 7007
+#        env:
+#        - name: CAD_AUTH_PROVDER
+#          value: current-context
+#        - name: CAD_GITOPS_DELIVERY_TOOL
+#          value: none
+#        - name CAD_RESOURCES_NAMESPACE
+#          value: default
+
+cp /demo/cluster-role-binding.yaml backstage-ui-plugin/
+
+cp /demo/sa.yaml backstage-ui-plugin/ 
+
+kpt alpha rpkg push blueprints-e057fa5d111e5249f93f350424d7e8c0159bbc3c backstage-ui-plugin -ndefault
+kpt alpha rpkg propose blueprints-e057fa5d111e5249f93f350424d7e8c0159bbc3c -ndefault
+kpt alpha rpkg approve blueprints-e057fa5d111e5249f93f350424d7e8c0159bbc3c -ndefault
+
+kpt alpha rpkg clone blueprints-e057fa5d111e5249f93f350424d7e8c0159bbc3c backstage-ui-plugin --repository=day3 -ndefault
+kpt alpha rpkg propose day3-99dc1b146c536e65dab32c7adf2ab32de2e2aff2 -ndefault
+kpt alpha rpkg approve day3-99dc1b146c536e65dab32c7adf2ab32de2e2aff2 -ndefault
+
+kubectl get pods --all-namespaces
+NAMESPACE                      NAME                                                READY   STATUS    RESTARTS      AGE
+backstage-ui-plugin            backstage-5dcbd6c95c-nj7mf                          1/1     Running   0             14m
+config-management-monitoring   otel-collector-659876667-mz6sk                      1/1     Running   0             2d23h
+config-management-system       config-management-operator-58ff7dbd66-t6glp         1/1     Running   0             2d23h
+config-management-system       reconciler-manager-679c4ccc96-l2xtr                 2/2     Running   0             2d23h
+config-management-system       root-reconciler-demo-root-sync-749884454c-lc272     4/4     Running   0             2d22h
+default                        my-nginx-578b7694b4-bjtsm                           1/1     Running   0             2d22h
+default                        my-nginx-578b7694b4-jjrcg                           1/1     Running   0             2d22h
+default                        my-nginx-578b7694b4-nnqnc                           1/1     Running   0             2d22h
+default                        my-nginx-578b7694b4-pfvt7                           1/1     Running   0             2d22h
+kube-system                    coredns-565d847f94-ck6kc                            1/1     Running   0             2d23h
+kube-system                    coredns-565d847f94-shdd8                            1/1     Running   0             2d23h
+kube-system                    etcd-demo-control-plane                             1/1     Running   0             2d23h
+kube-system                    kindnet-6czmb                                       1/1     Running   0             2d23h
+kube-system                    kube-apiserver-demo-control-plane                   1/1     Running   0             2d23h
+kube-system                    kube-controller-manager-demo-control-plane          1/1     Running   0             2d23h
+kube-system                    kube-proxy-m7tng                                    1/1     Running   0             2d23h
+kube-system                    kube-scheduler-demo-control-plane                   1/1     Running   1 (46h ago)   2d23h
+local-path-storage             local-path-provisioner-684f458cdd-k9lmk             1/1     Running   0             2d23h
+porch-system                   function-runner-6ff7ff6744-8sp7b                    1/1     Running   0             2d23h
+porch-system                   function-runner-6ff7ff6744-nt49s                    1/1     Running   0             2d23h
+porch-system                   porch-controllers-5467dfd9c7-9zkfg                  1/1     Running   0             2d23h
+porch-system                   porch-server-656c6fb555-8mnds                       1/1     Running   3 (34m ago)   2d23h
+resource-group-system          resource-group-controller-manager-795b9cb9c-k726b   2/2     Running   0             2d23h
+
+kubectl port-forward --address 0.0.0.0 -n backstage-ui-plugin svc/backstage 7007

@@ -1,0 +1,2 @@
+  - image: set-image:v0.1.1
+    configPath: set-image-config.yaml

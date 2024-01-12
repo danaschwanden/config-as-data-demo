@@ -1,0 +1,14 @@
+# cluster-root-sync.yaml
+apiVersion: configsync.gke.io/v1beta1
+kind: RootSync
+metadata:
+  name: cluster-root-sync
+  namespace: config-management-system
+spec:
+  sourceFormat: unstructured
+  git:
+    repo: http://gitea:3000/demo/demo-cluster
+    branch: main
+    auth: token
+    secretRef:
+      name: giteatoken

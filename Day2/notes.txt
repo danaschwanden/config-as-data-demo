@@ -1,0 +1,49 @@
+docker build -t workstation:day2 .
+
+docker run --rm -d --env='DOCKER_OPTS=' --volume=/var/lib/docker --privileged --name demo -p 8080:80 -p 3000:3000 workstation:day2
+
+Connect to the Workstation http:localhost:8080 and open a Terminal
+
+docker ps
+d69487aeb0fc  kindest/node:v1.25.3         2 minutes ago  127.0.0.1:34593->6443/tcp                       demo-control-plane
+7f9086f6184f  gitea/gitea:1.17.3-rootless  3 minutes ago  0.0.0.0:2222->2222/tcp, 0.0.0.0:3000->3000/tcp  gitea
+
+kubectl get pods --all-namespaces
+NAMESPACE                      NAME                                                READY   STATUS    RESTARTS   AGE
+config-management-monitoring   otel-collector-57fc48c4ff-d8dpm                     1/1     Running   0          27s
+config-management-system       reconciler-manager-78dc889567-kfv24                 2/2     Running   0          55s
+config-management-system       root-reconciler-demo-root-sync-769c98fc74-lf66n     4/4     Running   0          26s
+kube-system                    coredns-565d847f94-lf46d                            1/1     Running   0          55s
+kube-system                    coredns-565d847f94-z7s8p                            1/1     Running   0          55s
+kube-system                    etcd-demo-control-plane                             1/1     Running   0          68s
+kube-system                    kindnet-66tx2                                       1/1     Running   0          55s
+kube-system                    kube-apiserver-demo-control-plane                   1/1     Running   0          68s
+kube-system                    kube-controller-manager-demo-control-plane          1/1     Running   0          68s
+kube-system                    kube-proxy-lspr7                                    1/1     Running   0          55s
+kube-system                    kube-scheduler-demo-control-plane                   1/1     Running   0          70s
+local-path-storage             local-path-provisioner-684f458cdd-mn2w8             1/1     Running   0          55s
+resource-group-system          resource-group-controller-manager-795b9cb9c-crstw   2/2     Running   0          55s
+
+git config --global user.email "demo@d.com"
+git config --global user.name "demo"
+git clone http://demo:demo@localhost:3000/demo/day2.git
+
+cd day2
+kpt pkg get https://github.com/GoogleContainerTools/kpt/package-examples/nginx@v0.9
+mv nginx config-sync-day2
+rm config-sync-day2/svc.yaml
+kpt pkg tree
+day2
+└── Package "config-sync-day2"
+    ├── [Kptfile]  Kptfile nginx
+    └── [deployment.yaml]  Deployment my-nginx
+git add .
+git commit -m 'Adds nginx deployment to root sync'
+git push origin main
+
+kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+my-nginx-68fc675d59-fkdxf   1/1     Running   0          7m6s
+my-nginx-68fc675d59-qjjmf   1/1     Running   0          7m6s
+my-nginx-68fc675d59-vrlpm   1/1     Running   0          7m6s
+my-nginx-68fc675d59-xdmrg   1/1     Running   0          7m5s

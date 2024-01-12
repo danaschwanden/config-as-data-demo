@@ -1,0 +1,15 @@
+# demo-root-sync.yaml
+apiVersion: configsync.gke.io/v1beta1
+kind: RootSync
+metadata:
+  name: demo-root-sync
+  namespace: config-management-system
+spec:
+  sourceFormat: unstructured
+  git:
+    repo: http://gitea.gitea.svc.cluster.local:3000/nephio/day2
+    branch: main
+    dir: config-sync-day2
+    auth: token
+    secretRef:
+      name: giteatoken

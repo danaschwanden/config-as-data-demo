@@ -1,0 +1,2 @@
+  - image: apply-replacements:v0.1.1
+    configPath: apply-replacements.yaml
